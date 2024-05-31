@@ -1,5 +1,14 @@
 const mysql = require('mysql2');
+const express = require('express');
+const bodyParser = require('body-parser');
+const getTimestamp = require('./timestamp');
 require('dotenv').config();
+
+
+
+const app = express();
+const port = 3000;
+app.use(bodyParser.json());
 
 
 
@@ -21,4 +30,51 @@ connection.connect(function(err) {
   console.log('Connected to the database');
 });
 
+
+
+
+app.get('/', (req, res) => {
+    console.log("HIIIIII!!!");
+    res.send("HELLO WORLD");
+})
+
+// Define a route to handle POST requests
+app.post('/insertRecords', (req, res) => {
+    const data = req.body;
+    const id = data.id
+    const email = data.email
+    const phoneNo = data.phoneNumber
+    
+
+    let timestamp = getTimestamp();
+    console.log(timestamp);
+    
+    const newRecord = {
+        id : id,
+        email : email,
+        phoneNumber : phoneNo,
+        linkedId : null,
+        linkPrecedence : 'primary',
+        createdAt : timestamp,
+        updatedAt : timestamp,
+        deletedAt : null
+    }
+
+    connection.query('INSERT INTO contacts SET ?', newRecord, function(err, results) {
+        if (err) {
+          console.error('Error inserting record:', err);
+          return;
+        }
+        console.log('Inserted record with ID:', results.insertId);
+        console.log(email + " " + phoneNo);
+        res.send("RECORDS INSERTED");
+      });
+});
+
+
+
+// Start the server
+app.listen(port, () => {
+    console.log(`Server is running on http://localhost:${port}`);
+});
 
